@@ -7,9 +7,9 @@
 
 | Campo | Respuesta |
 | :--- | :--- |
-| **Nombre** | |
-| **Apellido** | |
-| **Legajo** | |
+| **Nombre** | Candela |
+| **Apellido** |Gonzalez Privitera |
+| **Legajo** | 63007 |
 
 > **Fecha de entrega:** 28 de Abril de 2026
 
