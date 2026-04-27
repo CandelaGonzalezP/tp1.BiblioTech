@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/bibliotech.iml" filepath="$PROJECT_DIR$/bibliotech.iml" />
+      <module fileurl="file://$PROJECT_DIR$/tp1.BiblioTech.iml" filepath="$PROJECT_DIR$/tp1.BiblioTech.iml" />
     </modules>
   </component>
 </project>
