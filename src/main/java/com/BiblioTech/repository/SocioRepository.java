@@ -1,4 +1,8 @@
 package com.BiblioTech.repository;
 
-public interface SocioRepository {
+import com.BiblioTech.model.Socio;
+
+public interface SocioRepository extends Repository<Socio, Integer> {
+    boolean existeDni(int dni);
+    boolean existeEmail(String email);
 }
