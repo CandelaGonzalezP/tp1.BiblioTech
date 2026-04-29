@@ -7,10 +7,14 @@ import java.util.*;
 public class CsvHelper {
 
     public static void escribir(String archivo, List<String> lineas) {
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(archivo))) {
-            for (String linea : lineas) {
-                writer.write(linea);
-                writer.newLine();
+        try {
+            Path path = Paths.get(archivo);
+            Files.createDirectories(path.getParent());
+            try (BufferedWriter writer = Files.newBufferedWriter(path)) {
+                for (String linea : lineas) {
+                    writer.write(linea);
+                    writer.newLine();
+                }
             }
         } catch (IOException e) {
             System.out.println("Error al escribir CSV: " + e.getMessage());

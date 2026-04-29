@@ -3,20 +3,22 @@ package com.BiblioTech.persistence;
 import com.BiblioTech.model.*;
 import com.BiblioTech.repository.*;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class PersistenciaService {
 
-    private static final String LIBROS_CSV = "libros.csv";
-    private static final String SOCIOS_CSV = "socios.csv";
+    private static final String LIBROS_CSV = "data/libros.csv";
+    private static final String EBOOKS_CSV = "data/ebooks.csv";
+    private static final String SOCIOS_CSV = "data/socios.csv";
 
     private final LibroRepository libroRepository;
+    private final EbookRepository ebookRepository;
     private final SocioRepository socioRepository;
 
-    public PersistenciaService(LibroRepository libroRepository, SocioRepository socioRepository) {
+    public PersistenciaService(LibroRepository libroRepository, EbookRepository ebookRepository, SocioRepository socioRepository) {
         this.libroRepository = libroRepository;
+        this.ebookRepository = ebookRepository;
         this.socioRepository = socioRepository;
     }
 
@@ -35,7 +37,23 @@ public class PersistenciaService {
             Libro libro = new Libro(p[0], p[1], p[2], Integer.parseInt(p[3]), CategoriaLibro.valueOf(p[4]), Boolean.parseBoolean(p[5]));
             libroRepository.guardar(libro);
         }
-        System.out.println("Libros cargados.");
+    }
+
+    public void guardarEbooks() {
+        List<String> lineas = ebookRepository.buscarTodos().stream()
+                .map(e -> e.isbn() + "," + e.titulo() + "," + e.autor() + "," + e.anio() + "," + e.categoria() + "," + e.formatoArchivo())
+                .collect(Collectors.toList());
+        CsvHelper.escribir(EBOOKS_CSV, lineas);
+        System.out.println("Ebooks guardados.");
+    }
+
+    public void cargarEbooks() {
+        List<String> lineas = CsvHelper.leer(EBOOKS_CSV);
+        for (String linea : lineas) {
+            String[] p = linea.split(",");
+            Ebook ebook = new Ebook(p[0], p[1], p[2], Integer.parseInt(p[3]), CategoriaLibro.valueOf(p[4]), p[5]);
+            ebookRepository.guardar(ebook);
+        }
     }
 
     public void guardarSocios() {
@@ -55,6 +73,5 @@ public class PersistenciaService {
                     : new Estudiante(Integer.parseInt(p[0]), p[1], p[2]);
             socioRepository.guardar(socio);
         }
-        System.out.println("Socios cargados.");
     }
 }

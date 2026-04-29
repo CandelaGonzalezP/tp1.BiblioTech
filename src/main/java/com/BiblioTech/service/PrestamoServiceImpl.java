@@ -8,23 +8,28 @@ import java.util.List;
 
 public class PrestamoServiceImpl implements PrestamoService {
     private final LibroRepository libroRepository;
+    private final EbookRepository ebookRepository;
     private final SocioRepository socioRepository;
     private final PrestamoRepositoryImpl prestamoRepository;
 
     public PrestamoServiceImpl(LibroRepository libroRepository,
+                               EbookRepository ebookRepository,
                                SocioRepository socioRepository,
                                PrestamoRepositoryImpl prestamoRepository) {
         this.libroRepository = libroRepository;
+        this.ebookRepository = ebookRepository;
         this.socioRepository = socioRepository;
         this.prestamoRepository = prestamoRepository;
     }
 
     @Override
     public void realizarPrestamo(String isbn, int dniSocio) throws BibliotecaException {
-        Libro libro = libroRepository.buscarPorId(isbn)
+        Recurso recurso = libroRepository.buscarPorId(isbn)
+                .map(l -> (Recurso) l)
+                .or(() -> ebookRepository.buscarPorId(isbn).map(e -> (Recurso) e))
                 .orElseThrow(() -> new LibroNoEncontradoException(isbn));
 
-        if (!libro.disponible()) {
+        if (recurso instanceof Libro libro && !libro.disponible()) {
             throw new LibroNoDisponibleException(isbn);
         }
 
@@ -38,16 +43,18 @@ public class PrestamoServiceImpl implements PrestamoService {
             throw new SocioSinCupoException(dniSocio);
         }
 
-        libroRepository.guardar(new Libro(
-                libro.isbn(), libro.titulo(), libro.autor(),
-                libro.anio(), libro.categoria(), false
-        ));
+        if (recurso instanceof Libro libro) {
+            libroRepository.guardar(new Libro(
+                    libro.isbn(), libro.titulo(), libro.autor(),
+                    libro.anio(), libro.categoria(), false
+            ));
+        }
 
         socio.incrementarPrestamos();
 
         Prestamo prestamo = new Prestamo(
                 prestamoRepository.generarId(),
-                socio, libro,
+                socio, recurso,
                 LocalDate.now(),
                 LocalDate.now().plusDays(7)
         );
@@ -56,7 +63,9 @@ public class PrestamoServiceImpl implements PrestamoService {
 
     @Override
     public void devolverLibro(String isbn, int dniSocio) throws BibliotecaException {
-        Libro libro = libroRepository.buscarPorId(isbn)
+        Recurso recurso = libroRepository.buscarPorId(isbn)
+                .map(l -> (Recurso) l)
+                .or(() -> ebookRepository.buscarPorId(isbn).map(e -> (Recurso) e))
                 .orElseThrow(() -> new LibroNoEncontradoException(isbn));
 
         Socio socio = socioRepository.buscarPorId(dniSocio)
@@ -74,10 +83,12 @@ public class PrestamoServiceImpl implements PrestamoService {
             System.out.println("Devolución con " + diasRetraso + " días de retraso. Socio sancionado hasta: " + socio.getFechaFinSancion());
         }
 
-        libroRepository.guardar(new Libro(
-                libro.isbn(), libro.titulo(), libro.autor(),
-                libro.anio(), libro.categoria(), true
-        ));
+        if (recurso instanceof Libro libro) {
+            libroRepository.guardar(new Libro(
+                    libro.isbn(), libro.titulo(), libro.autor(),
+                    libro.anio(), libro.categoria(), true
+            ));
+        }
 
         socio.decrementarPrestamos();
     }
